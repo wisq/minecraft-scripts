@@ -1,0 +1,10 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    dogstatsd-ruby (1.2.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  dogstatsd-ruby

@@ -8,7 +8,7 @@ Features
 
 * background operation with automatic restarts via runit
 * easy console access via "mconsole" command
-* server monitoring with [DataDog](http://datadoghq.com)
+* server monitoring with [Datadog](http://datadoghq.com)
 * automated hourly incremental backups via [WMB](http://github.com/wisq/wmb)
 
 Assumptions
@@ -60,11 +60,11 @@ The `mconsole` script will `tail` the runit log (for output) and send your comma
 Monitoring
 ----------
 
-The `monitor.rb` script (and `mc-monitor` runit service) are designed to connect to the `input` FIFO above and issue informational commands, then parse the output and send the results to [DataDog](http://datadoghq.com).  They assume you have a DataDog agent already running on your machine.  If you don't, they'll sit there running their commands, but the output will go nowhere.
+The `monitor.rb` script (and `mc-monitor` runit service) are designed to connect to the `input` FIFO above and issue informational commands, then parse the output and send the results to [Datadog](http://datadoghq.com).  They assume you have a Datadog agent already running on your machine.  If you don't, they'll sit there running their commands, but the output will go nowhere.
 
 Currently, this script alternates between running `forge tps` to get tick timing data, and `list` to get a list of players.
 
-For each dimension (plus overall), it will log and report to DataDog how long the tick took, and how many ticks are running per second.  I've got a DataDog alert that goes off whenever ticks-per-second drops below 20.
+For each dimension (plus overall), it will log and report to Datadog how long the tick took, and how many ticks are running per second.  I've got a Datadog alert that goes off whenever ticks-per-second drops below 20.
 
 It also logs how many players are online, who they are, and whether the players are "unattended" (no ops online).  I have an alert on "unattended" just so I know when my friends log in and I can go join them. ;)
 
@@ -87,7 +87,7 @@ In order to back up your server, the backup script also connects to the `wrap.rb
 6. It announces the end of the backup to players in-game
 7. It runs `save-on` to turn saving back on
 
-In the case of a failure, it announces the error to the players so they can contact an admin.  It also records in DataDog how long each of the major steps took (`save-all` and the WMB sync), and records how much space the latest backup took and how much space all backups are using.
+In the case of a failure, it announces the error to the players so they can contact an admin.  It also records in Datadog how long each of the major steps took (`save-all` and the WMB sync), and records how much space the latest backup took and how much space all backups are using.
 
 Within `/home/minecraft/backups/current`, it expects to find a `wmb.yml` file that details what to back up.  Mine looks like this:
 

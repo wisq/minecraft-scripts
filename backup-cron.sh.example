@@ -1,0 +1,13 @@
+#!/bin/sh
+
+exec 2>&1
+set -e -x
+
+# Change this to the path you installed `minecraft-scripts` to:
+cd /home/minecraft/scripts
+
+# Edit this to set your options:
+exec mix run bin/backup.rb \
+	--rcon-password=some_password \
+	--other-options=as_needed \
+	--etc-etc

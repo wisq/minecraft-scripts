@@ -21,7 +21,7 @@ defmodule Mcscripts.Backup do
         end
       rescue
         err ->
-          # Rcon.command!(rcon, "say ** ERROR: Backup failed!  Please let an admin know ASAP! **")
+          Rcon.command!(rcon, "say ** ERROR: Backup failed!  Please let an admin know ASAP! **")
           raise err
       after
         Rcon.command!(rcon, "save-on")

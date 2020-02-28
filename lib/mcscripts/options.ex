@@ -77,14 +77,29 @@ defmodule Mcscripts.Options do
       {parsed, [], []} ->
         parsed
 
-      {_, _, [{badopt, _} | _]} ->
+      {_, _, [{badopt, nil} | _]} ->
         usage("Unknown option: #{inspect(badopt)}", available)
 
+      {_, _, [{opt, badvalue} | _]} ->
+        type = get_option_type(available, opt)
+        usage("Expected #{type} for #{inspect(opt)} option, got #{inspect(badvalue)}", available)
+
       {_, [badarg | _], []} ->
-        usage("Unexpected non-option arguments: #{inspect(badarg)}", available)
+        usage("Unexpected non-option argument: #{inspect(badarg)}", available)
     end
     |> check_help(available)
     |> apply_substitutions()
+  end
+
+  defp get_option_type(available, opt) do
+    key =
+      opt
+      |> String.trim_leading("-")
+      |> String.replace("-", "_")
+      |> String.to_atom()
+
+    {type, _} = Keyword.fetch!(available, key)
+    type
   end
 
   defp check_help(options, available) do

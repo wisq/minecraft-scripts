@@ -3,6 +3,8 @@ defmodule Mcscripts.Stats do
   require Logger
   alias Mcscripts.{Options, Rcon}
 
+  import Mcscripts.Stats.{ForgeTiming, Players}
+
   defmodule State do
     @enforce_keys [:options, :statsd, :rcon]
     Enum.concat(
@@ -72,118 +74,6 @@ defmodule Mcscripts.Stats do
       collect_forge_timing(state, batch)
       collect_player_list(state, batch)
     end)
-  end
-
-  defp collect_forge_timing(state, batch) do
-    Rcon.command!(state.rcon, "forge tps")
-    |> String.split("\n")
-    |> Enum.each(&record_forge_timing(&1, state, batch))
-  end
-
-  @dimension_regex ~r{^Dim \s+ (?<num>-?\d+) \s+ \( (?<name>[^\(\)]+) \)$}x
-
-  defp record_forge_timing(line, state, batch) do
-    case String.split(line, " : ", parts: 2) do
-      ["Overall", timing] ->
-        record_forge_timing(nil, nil, timing, state, batch)
-
-      [dimension, timing] ->
-        %{"num" => num, "name" => name} = Regex.named_captures(@dimension_regex, dimension)
-        record_forge_timing(num, name, timing, state, batch)
-    end
-  end
-
-  defp record_forge_timing(number, name, line, state, batch) do
-    prefix = "#{state.options.statsd_prefix}.server"
-
-    timings =
-      line
-      |> String.split(". ")
-      |> Map.new(fn item ->
-        [key, value] = String.split(item, ": ", parts: 2)
-        {key, value}
-      end)
-      |> IO.inspect()
-
-    tick_ms =
-      Map.fetch!(timings, "Mean tick time")
-      |> String.replace(~r{ ms$}, "")
-      |> check_is_decimal()
-
-    tps =
-      Map.fetch!(timings, "Mean TPS")
-      |> check_is_decimal()
-
-    desc = describe_timing(tick_ms, tps)
-
-    case number do
-      nil ->
-        Logger.info("Overall: #{desc}.")
-        batch.gauge(state.statsd, "#{prefix}.tick.ms.overall", tick_ms)
-        batch.gauge(state.statsd, "#{prefix}.tick.tps.overall", tps)
-
-      n ->
-        tags = ["dimension:#{n}"]
-        Logger.info("Dimension #{inspect(name)} (#{number}): #{desc}.")
-        batch.gauge(state.statsd, "#{prefix}.tick.ms", tick_ms, tags: tags)
-        batch.gauge(state.statsd, "#{prefix}.tick.tps", tps, tags: tags)
-    end
-  end
-
-  def describe_timing(tick_ms, tps), do: "#{tps} TPS at #{tick_ms} ms/tick"
-
-  defp check_is_decimal(str) do
-    unless String.match?(str, ~r{^\d+\.\d+$}) do
-      raise "Can't parse decimal: #{inspect(str)}"
-    end
-
-    str
-  end
-
-  @player_header_regex ~r{^There are (?<cur>\d+)/(?<max>\d+) players online:$}
-
-  defp collect_player_list(state, batch) do
-    [header_line, players_line] =
-      Rcon.command!(state.rcon, "list")
-      |> String.split("\n")
-
-    players =
-      case players_line do
-        "" -> MapSet.new()
-        str -> String.split(str, ", ") |> MapSet.new()
-      end
-
-    ops = MapSet.intersection(players, state.ops)
-    non_ops = MapSet.difference(players, state.ops)
-
-    %{"cur" => current, "max" => max} = Regex.named_captures(@player_header_regex, header_line)
-    current = String.to_integer(current)
-    max = String.to_integer(max)
-    unattended = if Enum.empty?(ops), do: Enum.count(non_ops), else: 0
-
-    [
-      "Players online: #{current} / #{max}",
-      if(unattended > 0, do: "(unattended)", else: "")
-    ]
-    |> Enum.join(" ")
-    |> Logger.info()
-
-    [{"ops", ops}, {"non-ops", non_ops}]
-    |> Enum.each(fn {name, set} ->
-      unless Enum.empty?(set) do
-        [
-          String.pad_trailing("  - #{Enum.count(set)} #{name}:", 15),
-          set |> Enum.sort() |> Enum.join(", ")
-        ]
-        |> Enum.join(" ")
-        |> Logger.info()
-      end
-    end)
-
-    prefix = "#{state.options.statsd_prefix}.server.players"
-    batch.gauge(state.statsd, "#{prefix}.current", current)
-    batch.gauge(state.statsd, "#{prefix}.max", max)
-    batch.gauge(state.statsd, "#{prefix}.unattended", unattended)
   end
 
   defp refresh_lists(state) do

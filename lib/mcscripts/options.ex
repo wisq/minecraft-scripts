@@ -3,7 +3,7 @@ defmodule Mcscripts.Options do
     # Statsd options:
     statsd_host: "localhost",
     statsd_port: 8125,
-    statsd_prefix: "test.minecraft",
+    statsd_prefix: "minecraft",
 
     # RCON options:
     rcon_host: "localhost",

@@ -29,7 +29,7 @@ defmodule Mcscripts.Options do
     wmb_bin_sync: "${wmb_path}/bin/sync"
   )
 
-  @core_options [
+  @special_options [
     help: {:boolean, "This help page"}
   ]
   @statsd_options [
@@ -60,9 +60,8 @@ defmodule Mcscripts.Options do
   ]
 
   def parse(args, features \\ []) do
-    available =
+    config_options =
       [
-        @core_options,
         if(Keyword.get(features, :statsd, true), do: @statsd_options),
         if(Keyword.get(features, :rcon, true), do: @rcon_options),
         if(Keyword.get(features, :monitor, false), do: @monitor_options),
@@ -71,76 +70,128 @@ defmodule Mcscripts.Options do
       |> Enum.reject(&is_nil/1)
       |> Enum.concat()
 
-    strict = Enum.map(available, fn {opt, {type, _doc}} -> {opt, type} end)
+    all_options = Enum.concat(@special_options, config_options)
+    strict = Enum.map(all_options, fn {opt, {type, _doc}} -> {opt, type} end)
+
+    args = Enum.concat(args_from_environment(config_options), args)
 
     case OptionParser.parse(args, strict: strict) do
       {parsed, [], []} ->
         parsed
 
       {_, _, [{badopt, nil} | _]} ->
-        usage("Unknown option: #{inspect(badopt)}", available)
+        usage("Unknown option: #{inspect(badopt)}", all_options)
 
       {_, _, [{opt, badvalue} | _]} ->
-        type = get_option_type(available, opt)
-        usage("Expected #{type} for #{inspect(opt)} option, got #{inspect(badvalue)}", available)
+        type = get_option_type(all_options, opt)
+
+        usage(
+          "Expected #{type} for #{inspect(opt)} option, got #{inspect(badvalue)}",
+          all_options
+        )
 
       {_, [badarg | _], []} ->
-        usage("Unexpected non-option argument: #{inspect(badarg)}", available)
+        usage("Unexpected non-option argument: #{inspect(badarg)}", all_options)
     end
-    |> check_help(available)
+    |> check_help(all_options)
     |> apply_substitutions()
   end
 
-  defp get_option_type(available, opt) do
+  defp get_option_type(options, opt) do
     key =
       opt
       |> String.trim_leading("-")
       |> String.replace("-", "_")
       |> String.to_atom()
 
-    {type, _} = Keyword.fetch!(available, key)
+    {type, _} = Keyword.fetch!(options, key)
     type
   end
 
-  defp check_help(options, available) do
-    if Keyword.get(options, :help, false) do
-      usage(nil, available)
-    end
+  defp args_from_environment(options) do
+    env = System.get_env()
 
+    options
+    |> Enum.map(fn {opt, _} ->
+      var = opt |> Atom.to_string() |> String.upcase()
+
+      case Map.fetch(env, var) do
+        {:ok, value} ->
+          opt = atom_to_option(opt)
+          "#{opt}=#{value}"
+
+        :error ->
+          nil
+      end
+    end)
+    |> Enum.reject(&is_nil/1)
+  end
+
+  defp check_help(options, all_options) do
+    {help, options} = Keyword.pop(options, :help, false)
+    if help, do: usage(nil, all_options)
     options
   end
 
-  defp usage(nil, available) do
+  @env_help_text """
+  You can also set any of the above (except special options like `--help`)
+  using environment variables.  For example,
+
+      RCON_PASSWORD=some_password mix run bin/script.exs
+
+  or
+
+      export RCON_PASSWORD=some_password
+      mix run bin/script.exs
+
+  (So if a script is complaining about an option you didn't set
+  on the command line, check your environment variables.)
+  """
+
+  defp usage(nil, all_options) do
     IO.puts(:stderr, [
       "\nAvailable options:\n\n",
-      option_documentation(available),
-      "\n"
+      option_documentation(all_options),
+      "\n\n#{@env_help_text}"
     ])
 
     exit(:normal)
   end
 
-  defp usage(error, available) do
+  defp usage(error, all_options) do
     IO.puts(:stderr, [
       "\nAvailable options:\n\n",
-      option_documentation(available),
+      option_documentation(all_options),
       "\n\nERROR: #{error}"
     ])
 
     exit({:shutdown, 1})
   end
 
-  defp option_documentation(available) do
+  defp atom_to_option(opt) do
+    "--" <>
+      (opt
+       |> Atom.to_string()
+       |> String.replace("_", "-"))
+  end
+
+  defp option_to_atom("--" <> opt) do
+    opt
+    |> String.replace("-", "_")
+    |> String.to_atom()
+  end
+
+  defp option_documentation(all_options) do
     defaults = %__MODULE__{}
 
-    available
+    all_options
     |> Enum.map(fn {key, {type, doc}} ->
-      opt = Atom.to_string(key) |> String.replace("_", "-")
+      opt = atom_to_option(key)
 
       basic =
         case type do
-          :boolean -> "--#{opt}\n\t#{doc}"
-          _ -> "--#{opt} (#{type})\n\t#{doc}"
+          :boolean -> "#{opt}\n\t#{doc}"
+          _ -> "#{opt} (#{type})\n\t#{doc}"
         end
 
       case Map.fetch(defaults, key) do
@@ -152,8 +203,8 @@ defmodule Mcscripts.Options do
     |> Enum.intersperse("\n\n")
   end
 
-  defp apply_substitutions(args) do
-    options = struct!(__MODULE__, args)
+  defp apply_substitutions(options) do
+    options = struct!(__MODULE__, options)
 
     substituted =
       options

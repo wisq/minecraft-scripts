@@ -6,8 +6,17 @@ set -e -x
 # Change this to the path you installed `minecraft-scripts` to:
 cd /home/minecraft/scripts
 
-# Edit this to set your options:
-exec mix run bin/backup.rb \
-	--rcon-password=some_password \
-	--other-options=as_needed \
-	--etc-etc
+# Uncomment these and set them as needed:
+export RCON_PASSWORD=some_password
+#export RCON_HOST=localhost
+#export RCON_PORT=25575
+#export WMB_CYCLE=true
+#export WMB_CYCLE_FORMAT='%Y-%m-%d.%H'
+#export WMB_BACKUP_PATH=/home/minecraft/backups
+#export WMB_PATH=/home/minecraft/wmb
+# ... etc etc ...
+
+# With your options set above, you shouldn't need any command-line parameters here.
+# This keeps your configuration data hidden, so people can't see it in a `ps` listing.
+# (But don't forget to `chmod 700` this file to keep it private!)
+exec mix run bin/backup.exs

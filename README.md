@@ -21,6 +21,20 @@ Installation
 
 And you're ready to go!  See either the "[Monitoring](#monitoring)" or "[Backups](#backups)" sections below for details on each.
 
+Security concerns
+-----------------
+
+When specifying options on the command line — especially passwords like `--rcon-password` — remeber that **every user on your server** can see the options you're using.  This may not seem like a big problem if you're running a small private server, but it's still a good idea not to put passwords on the command line.
+
+However, there's a solution for this: All command-line parameters can be specified via environment variables instead.  So for example, if you do ...
+
+```sh
+export RCON_PASSWORD=some_password
+mix run bin/monitor.exs
+```
+
+... you can keep your password private, since nobody (except your server administrator) can see environment variables for other users.  (Just remember that if you're putting this in a script, you should run `chmod 700` on the script to make sure nobody else can read it.)
+
 RCON access
 -----------
 
@@ -46,7 +60,7 @@ If none of the above work with your version of Minecraft, then you'll need to ei
 Monitoring
 ----------
 
-To monitor your server, you can run `mix run bin/monitor.exs` along with any necessary options.  (Try the `--help` option for details).
+To monitor your server, you can run `mix run bin/monitor.exs` along with any necessary options.  (Try the `--help` option for details.)
 
 The monitoring script issues informational commands to the Minecraft server, then parses the output and sends the results to [Datadog](http://datadoghq.com).  They assume you have a Datadog agent already running on your machine.  If you don't, they'll sit there running their commands, but the output will go nowhere.
 

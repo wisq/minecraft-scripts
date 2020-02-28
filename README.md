@@ -8,7 +8,7 @@ Features
 
 * server monitoring with [Datadog](http://datadoghq.com)
 * automated hourly incremental backups via [WMB](http://github.com/wisq/wmb)
-* only requires a minor options to your server config
+* only requires minor changes to your server config
 
 Installation
 ------------

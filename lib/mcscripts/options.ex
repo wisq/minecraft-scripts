@@ -10,6 +10,11 @@ defmodule Mcscripts.Options do
     rcon_port: 25575,
     rcon_password: "",
 
+    # Monitor options:
+    minecraft_path: "/home/minecraft/server",
+    monitor_interval: 60,
+    monitor_lists_interval: 1800,
+
     # WMB options:
     wmb_cycle: true,
     wmb_cycle_format: "%Y-%m-%d.%H",
@@ -36,6 +41,12 @@ defmodule Mcscripts.Options do
     rcon_port: {:integer, "RCON (TCP) port for Minecraft server"},
     rcon_password: {:string, "RCON password for Minecraft server"}
   ]
+  @monitor_options [
+    minecraft_path: {:string, "Path to Minecraft server installation"},
+    monitor_interval: {:integer, "How often (in seconds) to record server stats"},
+    monitor_lists_interval:
+      {:integer, "How often (in seconds) to reload player lists (ops, whitelist)"}
+  ]
   @wmb_options [
     wmb_cycle: {:boolean, "Should we perform a WMB `cycle` command before backups?"},
     wmb_cycle_format:
@@ -52,6 +63,7 @@ defmodule Mcscripts.Options do
         @core_options,
         if(Keyword.get(features, :statsd, true), do: @statsd_options),
         if(Keyword.get(features, :rcon, true), do: @rcon_options),
+        if(Keyword.get(features, :monitor, false), do: @monitor_options),
         if(Keyword.get(features, :wmb, false), do: @wmb_options)
       ]
       |> Enum.reject(&is_nil/1)

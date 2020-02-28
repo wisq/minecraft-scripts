@@ -31,6 +31,8 @@ defmodule Mcscripts.Stats.Players do
     batch.gauge(state.statsd, "#{prefix}.current", current)
     batch.gauge(state.statsd, "#{prefix}.max", max)
     batch.gauge(state.statsd, "#{prefix}.unattended", unattended)
+
+    if state.options.monitor_track_players, do: track_players(state, players, batch, prefix)
   end
 
   defp log_player_count(current, max, 0) do
@@ -50,5 +52,19 @@ defmodule Mcscripts.Stats.Players do
       |> Enum.join(" ")
       |> Logger.info()
     end
+  end
+
+  defp track_players(state, online_players, batch, prefix) do
+    state.whitelist
+    |> Enum.each(fn player ->
+      is_online =
+        case MapSet.member?(online_players, player) do
+          true -> 1
+          false -> 0
+        end
+
+      tags = ["name:#{player}"]
+      batch.gauge(state.statsd, "#{prefix}.online", is_online, tags: tags)
+    end)
   end
 end

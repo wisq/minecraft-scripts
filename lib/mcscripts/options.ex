@@ -14,6 +14,7 @@ defmodule Mcscripts.Options do
     minecraft_path: "/home/minecraft/server",
     monitor_interval: 60,
     monitor_lists_interval: 1800,
+    monitor_track_players: false,
 
     # WMB options:
     wmb_cycle: true,
@@ -45,10 +46,11 @@ defmodule Mcscripts.Options do
     minecraft_path: {:string, "Path to Minecraft server installation"},
     monitor_interval: {:integer, "How often (in seconds) to record server stats"},
     monitor_lists_interval:
-      {:integer, "How often (in seconds) to reload player lists (ops, whitelist)"}
+      {:integer, "How often (in seconds) to reload player lists (ops, whitelist)"},
+    monitor_track_players: {:boolean, "Record online status of every player in whitelist"}
   ]
   @wmb_options [
-    wmb_cycle: {:boolean, "Should we perform a WMB `cycle` command before backups?"},
+    wmb_cycle: {:boolean, "Perform a WMB `cycle` command before backups"},
     wmb_cycle_format:
       {:string, "Format for WMB `cycle` directories (using `strftime` placeholders)"},
     wmb_backup_path: {:string, "Path to WMB backups"},

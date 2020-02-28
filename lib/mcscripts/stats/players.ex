@@ -23,28 +23,32 @@ defmodule Mcscripts.Stats.Players do
     max = String.to_integer(max)
     unattended = if Enum.empty?(ops), do: Enum.count(non_ops), else: 0
 
-    [
-      "Players online: #{current} / #{max}",
-      if(unattended > 0, do: "(unattended)", else: "")
-    ]
-    |> Enum.join(" ")
-    |> Logger.info()
-
-    [{"ops", ops}, {"non-ops", non_ops}]
-    |> Enum.each(fn {name, set} ->
-      unless Enum.empty?(set) do
-        [
-          String.pad_trailing("  - #{Enum.count(set)} #{name}:", 15),
-          set |> Enum.sort() |> Enum.join(", ")
-        ]
-        |> Enum.join(" ")
-        |> Logger.info()
-      end
-    end)
+    log_player_count(current, max, unattended)
+    log_player_list("ops", ops)
+    log_player_list("non-ops", non_ops)
 
     prefix = "#{state.options.statsd_prefix}.server.players"
     batch.gauge(state.statsd, "#{prefix}.current", current)
     batch.gauge(state.statsd, "#{prefix}.max", max)
     batch.gauge(state.statsd, "#{prefix}.unattended", unattended)
+  end
+
+  defp log_player_count(current, max, 0) do
+    Logger.info("Players online: #{current} / #{max}")
+  end
+
+  defp log_player_count(current, max, unattended) do
+    Logger.info("Players online: #{current} / #{max} (unattended)")
+  end
+
+  defp log_player_list(type, set) do
+    unless Enum.empty?(set) do
+      [
+        String.pad_trailing("  - #{Enum.count(set)} #{type}:", 15),
+        set |> Enum.sort() |> Enum.join(", ")
+      ]
+      |> Enum.join(" ")
+      |> Logger.info()
+    end
   end
 end

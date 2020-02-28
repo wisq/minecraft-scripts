@@ -154,7 +154,7 @@ PATH=/usr/bin:/bin
 0 */6 *   *   *     /home/minecraft/scripts/backup-cron.sh > /home/minecraft/backups/cron.log 2>&1
 ```
 
-Note: At some point, you'll probably want to start cleaning out old backups; I haven't written anything to automate that yet.  Keep an eye on `du` ("disk usage"), and don't forget to check `du -i` (inodes) too; hardlinking files tends to use up a lot of inodes without using up a lot of space.
+Note: At some point, you'll probably want to start cleaning out old backups; I haven't written anything to automate that yet.  Keep an eye on `du` ("disk usage"), and don't forget to check `du --inodes` too; hardlinking files tends to use up a lot of inodes without using up a lot of space.
 
 Legal stuff
 -----------

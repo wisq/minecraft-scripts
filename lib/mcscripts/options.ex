@@ -98,12 +98,7 @@ defmodule Mcscripts.Options do
   end
 
   defp get_option_type(options, opt) do
-    key =
-      opt
-      |> String.trim_leading("-")
-      |> String.replace("-", "_")
-      |> String.to_atom()
-
+    key = option_to_atom(opt)
     {type, _} = Keyword.fetch!(options, key)
     type
   end

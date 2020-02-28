@@ -24,7 +24,7 @@ And you're ready to go!  See either the "[Monitoring](#monitoring)" or "[Backups
 Security concerns
 -----------------
 
-When specifying options on the command line — especially passwords like `--rcon-password` — remeber that **every user on your server** can see the options you're using.  This may not seem like a big problem if you're running a small private server, but it's still a good idea not to put passwords on the command line.
+When specifying options on the command line (especially passwords like `--rcon-password`), remeber that **every user on your server** can see the options you're using.  This may not seem like a big problem if you're running a small private server, but it's still a good idea not to put passwords on the command line.
 
 However, there's a solution for this: All command-line parameters can be specified via environment variables instead.  So for example, if you do ...
 
@@ -38,7 +38,7 @@ mix run bin/monitor.exs
 RCON access
 -----------
 
-Both scripts require RCON access to your Minecraft server.  That means you'll need to open up your server's `server.properties` file and edit or add the following options:
+All of these scripts require RCON access to your Minecraft server.  That means you'll need to open up your server's `server.properties` file and edit or add the following options:
 
 * `enable-rcon` — set this to `true`
 * `rcon.port` — the default of 25575 is fine
@@ -104,9 +104,11 @@ This can be useful for tracking your friends' activity, for seeing who logs on a
 Backups
 -------
 
-Backups use [WMB](http://github.com/wisq/wmb), a set of scripts I created to do simple incremental backups with `rsync`.  You don't need to set up any of the server stuff unless you want to back up to a separate server — though, of course, if you care about your server / world / players, that's not a bad idea.  (Personally, I just use the backups in case something goes horribly wrong **in** the world, so I don't mind that they're local only.)
+Backups use [WMB](http://github.com/wisq/wmb), a set of scripts I created to do simple incremental backups with `rsync`.
 
-Every backup tree is a complete copy of the files you've selected for backup.  However, whenever those files have *not* changed since the last backup, it creates a *hard link* to the old file.  Hard links are two different names for the same file on disk.  So, if you have a large world but some parts are never updated, you won't see much actual disk usage.
+You don't need to set up any of the WMB server-side stuff (e.g. no `rsync` daemon, no `bin/cycle` cronjob, etc) unless you want to back up to a separate server — though, of course, if you care about your server / world / players, that's not a bad idea.  (Personally, I just use the backups in case something goes horribly wrong **in** the world, so I don't mind that they're local only.)
+
+Every backup tree is a complete copy of the files you've selected for backup.  However, whenever those files have *not* changed since the last backup, it creates a *hard link* to the old file.  Hard links are two different names for the same file on disk, so they don't take up any extra space.  That means that even if you have a huge world, as long as only a few parts are regularly being updated, you won't see much actual disk usage.
 
 In order to back up your server, the backup script issues several commands (via the shell and via RCON):
 

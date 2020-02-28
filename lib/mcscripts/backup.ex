@@ -32,6 +32,10 @@ defmodule Mcscripts.Backup do
   defp wmb_cycle(%Options{wmb_cycle: false}), do: :noop
 
   defp wmb_cycle(%Options{wmb_cycle: true} = options) do
+    options.wmb_backup_path
+    |> Path.join("upload")
+    |> File.mkdir_p()
+
     System.cmd(
       options.wmb_bin_cycle,
       [

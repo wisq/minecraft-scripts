@@ -1,8 +1,0 @@
-#!/bin/sh
-
-set -e
-exec 2>&1
-
-exec chpst -u minecraft \
-	ruby ./wrap.rb ./input /home/minecraft/current \
-	java -server -Xms4G -Xmx8G -jar server.jar nogui

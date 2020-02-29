@@ -10,7 +10,7 @@ defmodule Mcscripts.Rcon do
   end
 
   def command!(rcon, command) do
-    {:ok, output} = GenServer.call(rcon, {:command, command})
+    {:ok, output} = command(rcon, command)
     output
   end
 

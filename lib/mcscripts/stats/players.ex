@@ -39,7 +39,7 @@ defmodule Mcscripts.Stats.Players do
     Logger.info("Players online: #{current} / #{max}")
   end
 
-  defp log_player_count(current, max, unattended) do
+  defp log_player_count(current, max, unattended) when unattended > 0 do
     Logger.info("Players online: #{current} / #{max} (unattended)")
   end
 

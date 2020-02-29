@@ -7,11 +7,14 @@ defmodule Mcscripts.Backup do
     {:ok, statsd} = DogStatsd.new(options.statsd_host, options.statsd_port)
     {:ok, rcon} = Rcon.connect(options.rcon_host, options.rcon_port, options.rcon_password)
     prefix = "#{options.statsd_prefix}.backup"
+    do_announce = options.announce_backups
+
+    announce(do_announce, rcon, "Backup in progress, please stand by ...")
 
     DogStatsd.time statsd, "#{prefix}.time.total" do
-      wmb_cycle(options)
-
       try do
+        wmb_cycle(options)
+
         DogStatsd.time statsd, "#{prefix}.time.save" do
           Rcon.command!(rcon, "save-all flush")
         end
@@ -23,12 +26,14 @@ defmodule Mcscripts.Backup do
         end
       rescue
         err ->
-          Rcon.command!(rcon, "say ** ERROR: Backup failed!  Please let an admin know ASAP! **")
+          announce(true, rcon, "ERROR: Backup failed!  Please let an admin know ASAP!")
           raise err
       after
         Rcon.command!(rcon, "save-on")
       end
     end
+
+    announce(do_announce, rcon, "Backup complete, enjoy!")
 
     collect_stats(options, statsd, prefix)
   end
@@ -124,5 +129,11 @@ defmodule Mcscripts.Backup do
       |> String.reverse()
 
     "#{delimited} bytes"
+  end
+
+  defp announce(false, _, _), do: :noop
+
+  defp announce(true, rcon, message) do
+    Rcon.command!(rcon, "say ** #{message} **")
   end
 end

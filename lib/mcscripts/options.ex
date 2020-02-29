@@ -17,6 +17,7 @@ defmodule Mcscripts.Options do
     monitor_track_players: false,
 
     # WMB options:
+    announce_backups: false,
     wmb_cycle: true,
     wmb_cycle_format: "%Y-%m-%d.%H",
     wmb_stats: true,
@@ -51,6 +52,7 @@ defmodule Mcscripts.Options do
     monitor_track_players: {:boolean, "Record online status of every player in whitelist"}
   ]
   @wmb_options [
+    announce_backups: {:boolean, "Announce backups to players"},
     wmb_cycle: {:boolean, "Perform a WMB `cycle` command before backups"},
     wmb_cycle_format:
       {:string, "Format for WMB `cycle` directories (using `strftime` placeholders)"},

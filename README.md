@@ -113,11 +113,11 @@ Every backup tree is a complete copy of the files you've selected for backup.  H
 In order to back up your server, the backup script issues several commands (via the shell and via RCON):
 
 1. It runs WMB's `cycle` script to cycle the backup directory (so no need for a separate cron entry)
-2. ~~If `--announce-backups` is set, it announces the backup to players in-game~~ **(TODO)**
+2. If `--announce-backups` is set, it announces the backup to players in-game
 3. It runs `save-all flush` to make sure the world is flushed to disk
 4. It runs `save-off` to disable saving, so the world doesn't update while it's backing up
 5. It runs WMB's `sync` script to perform the actual backup
-6. ~~If `--announce-backups` is set, it announces the end of the backup to players in-game~~ **(TODO)**
+6. If `--announce-backups` is set, it announces the end of the backup to players in-game
 7. It runs `save-on` to turn saving back on
 
 In the case of a failure, it always announces the error to the players (regardless of the `--announce-backups` setting) so they can contact an admin.

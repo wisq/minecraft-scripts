@@ -120,9 +120,18 @@ In order to back up your server, the backup script issues several commands (via 
 6. ~~If `--announce-backups` is set, it announces the end of the backup to players in-game~~ **(TODO)**
 7. It runs `save-on` to turn saving back on
 
-It also records in Datadog how long each of the major steps took (`save-all` and the WMB sync), and ~~records how much space the latest backup took and how much space all backups are using~~ **(TODO)**.
-
 In the case of a failure, it always announces the error to the players (regardless of the `--announce-backups` setting) so they can contact an admin.
+
+It also records in Datadog how long each of the major steps took (`save-all` and the WMB sync), and how much space on disk the backups used:
+
+* `minecraft.backup.time.save` — how long the Minecraft server took to flush the world to disk
+* `minecraft.backup.time.sync` — how long it took to create the backup
+* `minecraft.backup.time.total` — how long the entire backup process took (cycle, flush, sync)
+* `minecraft.backup.size.incremental` — how much **new** space was consumed by the latest backup
+  * unmodified files are shared with the last backup and are not counted
+* `minecraft.backup.size.latest` — the total size of the latest backup
+  * this counts all files, modified or unmodified
+* `minecraft.backup.size.all` — the size of the entire backups directory
 
 ### Setup
 

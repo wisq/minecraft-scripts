@@ -19,6 +19,7 @@ defmodule Mcscripts.Options do
     # WMB options:
     wmb_cycle: true,
     wmb_cycle_format: "%Y-%m-%d.%H",
+    wmb_stats: true,
     wmb_backup_path: "/home/minecraft/backups",
     wmb_config_file: "${wmb_backup_path}/wmb.yml",
     wmb_log_file: "${wmb_backup_path}/wmb.log",
@@ -53,6 +54,7 @@ defmodule Mcscripts.Options do
     wmb_cycle: {:boolean, "Perform a WMB `cycle` command before backups"},
     wmb_cycle_format:
       {:string, "Format for WMB `cycle` directories (using `strftime` placeholders)"},
+    wmb_stats: {:boolean, "Collect stats regarding backup size on disk"},
     wmb_backup_path: {:string, "Path to WMB backups"},
     wmb_config_file: {:string, "Path to WMB config file"},
     wmb_upload_target: {:string, "rsync target for WMB sync"},

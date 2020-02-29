@@ -1,6 +1,0 @@
-#!/bin/sh
-exec 2>&1
-
-cd /home/minecraft/scripts
-export GEM_HOME=/home/minecraft/.rubygems
-exec chpst -u minecraft $GEM_HOME/bin/bundle exec ./monitor.rb

@@ -16,14 +16,14 @@ defmodule Mcscripts.Rcon do
 
   @impl true
   def init({host, port, password}) do
-    {:ok, conn} = RCON.Client.connect(host, port)
+    {:ok, conn} = RCON.Client.connect(host, port, multi: false)
     {:ok, conn, true} = RCON.Client.authenticate(conn, password)
     {:ok, conn}
   end
 
   @impl true
   def handle_call({:command, command}, _, conn) do
-    {result, conn, output} = RCON.Client.exec(conn, command, single_packet: true)
+    {result, conn, output} = RCON.Client.exec(conn, command)
     {:reply, {result, output}, conn}
   end
 end

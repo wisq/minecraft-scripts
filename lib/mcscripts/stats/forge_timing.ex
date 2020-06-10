@@ -11,7 +11,7 @@ defmodule Mcscripts.Stats.ForgeTiming do
   @dimension_regex ~r{^Dim \s+ (?<num>-?\d+) \s+ \( (?<name>[^\(\)]+) \)$}x
 
   defp record_forge_timing(line, state, batch) do
-    case String.split(line, " : ", parts: 2) do
+    case String.split(line, ~r{ ?: }, parts: 2) do
       ["Overall", timing] ->
         record_forge_timing(nil, nil, timing, state, batch)
 

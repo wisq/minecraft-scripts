@@ -2,15 +2,18 @@ defmodule Mcscripts.Stats.Players do
   require Logger
   alias Mcscripts.Rcon
 
-  @player_header_regex ~r{^There are (?<cur>\d+)/(?<max>\d+) players online:$}
+  @regexes [
+    ~r{^There are (?<cur>\d+)/(?<max>\d+) players online:\n(?<list>.*)$},
+    ~r{^There are (?<cur>\d+) of a max (?<max>\d+) players online: (?<list>.*)$}
+  ]
 
   def collect_player_list(state, batch) do
-    [header_line, players_line] =
+    %{"cur" => current, "max" => max, "list" => players_list} =
       Rcon.command!(state.rcon, "list")
-      |> String.split("\n")
+      |> try_regexes()
 
     players =
-      case players_line do
+      case players_list do
         "" -> MapSet.new()
         str -> String.split(str, ", ") |> MapSet.new()
       end
@@ -18,7 +21,6 @@ defmodule Mcscripts.Stats.Players do
     ops = MapSet.intersection(players, state.ops)
     non_ops = MapSet.difference(players, state.ops)
 
-    %{"cur" => current, "max" => max} = Regex.named_captures(@player_header_regex, header_line)
     current = String.to_integer(current)
     max = String.to_integer(max)
     unattended = if Enum.empty?(ops), do: Enum.count(non_ops), else: 0
@@ -33,6 +35,10 @@ defmodule Mcscripts.Stats.Players do
     batch.gauge(state.statsd, "#{prefix}.unattended", unattended)
 
     if state.options.monitor_track_players, do: track_players(state, players, batch, prefix)
+  end
+
+  defp try_regexes(output) do
+    Enum.find_value(@regexes, &Regex.named_captures(&1, output))
   end
 
   defp log_player_count(current, max, 0) do
